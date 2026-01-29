@@ -2,12 +2,12 @@ package controllers
 
 import (
 	"context"
+	"github.com/trustyai-explainability/trustyai-operator-common/pkg/constants"
 	"time"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	nemoguardrailsv1alpha1 "github.com/trustyai-explainability/nemo-guardrails-controller/api/v1alpha1"
-	"github.com/trustyai-explainability/trustyai-operator-common/pkg/constants"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
@@ -23,6 +23,7 @@ var _ = Describe("NemoGuardrails Controller", func() {
 		resourceName      = "test-nemoguardrails"
 		namespace         = "test"
 		operatorNamespace = "operator-ns"
+		operatorConfigMap = "parent-operator-config"
 		saName            = resourceName + "-serviceaccount"
 		crbName           = resourceName + "-" + namespace + "-auth-delegator"
 	)
@@ -58,9 +59,9 @@ var _ = Describe("NemoGuardrails Controller", func() {
 		}
 
 		By("creating the trustyai-service-operator-config ConfigMap required by NemoGuardrails")
-		operatorConfigMap := &corev1.ConfigMap{
+		configMap := &corev1.ConfigMap{
 			ObjectMeta: metav1.ObjectMeta{
-				Name:      constants.ConfigMap,
+				Name:      operatorConfigMap,
 				Namespace: operatorNamespace,
 			},
 			Data: map[string]string{
@@ -68,7 +69,7 @@ var _ = Describe("NemoGuardrails Controller", func() {
 				configMapKubeRBACProxyImageKey: "quay.io/openshift/origin-kube-rbac-proxy:4.19",
 			},
 		}
-		err = k8sClient.Create(ctx, operatorConfigMap)
+		err = k8sClient.Create(ctx, configMap)
 		if err != nil && !errors.IsAlreadyExists(err) {
 			Expect(err).NotTo(HaveOccurred())
 		}
